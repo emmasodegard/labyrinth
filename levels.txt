@@ -1,0 +1,3 @@
+start:map1.txt
+aSharpPlace:sharp.txt
+thirdLevel:thirdLevel.txt
