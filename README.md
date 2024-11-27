@@ -22,6 +22,6 @@ Implemented:
 - When a character takes damage, briefly color the background of that character red.
 - Let the player decide what the movement keys should be (or support awsd+space as well as arrows + space).
 
-Partially Implemented:
+Partially implemented:
 - Make the B NPC shoot projectiles when the hero is close; projectiles must be visible and move in a straight line.
     I implemented the boss NPC (B) shooting visible projectiles that move in a straight line. However, the shooting is currently based on a random chance rather than the hero's proximity.
