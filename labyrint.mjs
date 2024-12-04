@@ -90,12 +90,10 @@ class Labyrinth {
         this.projectiles = [];
         this.bosses = [];
 
-        // Find NPCs, player position, and bosses
         for (let row = 0; row < this.level.length; row++) {
             for (let col = 0; col < this.level[row].length; col++) {
                 let symbol = this.level[row][col];
                 if (symbol == HERO) {
-                    // Set player position but remove HERO symbol from the map
                     this.playerPos.row = row;
                     this.playerPos.col = col;
                     this.level[row][col] = EMPTY;
@@ -123,7 +121,6 @@ class Labyrinth {
         }
 
         if (this.playerPos.row === null || this.playerPos.col === null) {
-            // Place HERO at entering door or default position
             let placedHero = false;
             if (enteringDoor) {
                 for (let row = 0; row < this.level.length; row++) {
@@ -139,7 +136,6 @@ class Labyrinth {
                 }
             }
             if (!placedHero) {
-                // Place HERO at first empty space
                 for (let row = 0; row < this.level.length; row++) {
                     for (let col = 0; col < this.level[row].length; col++) {
                         if (this.level[row][col] == EMPTY) {
@@ -184,32 +180,27 @@ class Labyrinth {
         let currentItem = this.level[tRow]?.[tCol];
 
         if (currentItem === undefined || currentItem == '█') {
-            // Out of bounds or wall
             return;
         }
 
         if (this.isPositionOccupiedByNPC(tRow, tCol)) {
-            // Collision with NPC
             let npc = this.getNPCAtPosition(tRow, tCol);
 
-            // Calculate damage
             let damageToPlayer = Math.max(0, npc.strength - playerStats.defense);
             playerStats.hp -= damageToPlayer;
             playerStats.damageFlag = true;
             eventQueue.push(`Enemy hits you for ${damageToPlayer} damage!`);
 
-            let damageToNPC = Math.max(0, playerStats.strength - 1); // NPC defense is 1
+            let damageToNPC = Math.max(0, playerStats.strength - 1);
             npc.hp -= damageToNPC;
             npc.damageFlag = true;
             eventQueue.push(`You hit enemy for ${damageToNPC} damage!`);
 
-            // Check if NPC is defeated
             if (npc.hp <= 0) {
                 eventQueue.push(`Enemy defeated!`);
                 this.NPCs.splice(this.NPCs.indexOf(npc), 1);
             }
 
-            // Check if player is defeated
             if (playerStats.hp <= 0) {
                 eventQueue.push(`You have been defeated! Game Over.`);
                 console.log(eventQueue.join('\n'));
@@ -217,7 +208,7 @@ class Labyrinth {
             }
 
             this.isDirty = true;
-            return; // Stop further movement
+            return;
         } else if (currentItem == HEALTH_POTION) {
             let healAmount = 5;
             playerStats.hp = Math.min(playerStats.hp + healAmount, HP_MAX);
@@ -245,16 +236,12 @@ class Labyrinth {
                 let loot = Math.round(Math.random() * 7) + 3;
                 playerStats.cash += loot;
                 eventQueue.push(`Player gained ${loot}$`);
-                // Remove loot from the map
                 this.level[tRow][tCol] = EMPTY;
             } else if (currentItem == TELEPORT) {
-                // Handle teleport
                 this.handleTeleport(tRow, tCol);
                 return;
             } else if (DOORS.includes(currentItem)) {
-                // Handle door
                 if (this.currentLevelID === 'thirdLevel') {
-                    // Player has reached the end
                     console.log("You Won! Game Over");
                     process.exit();
                 } else {
@@ -265,24 +252,19 @@ class Labyrinth {
                     }
                 }
             }
-            // Update the HERO position
             this.playerPos.row = tRow;
             this.playerPos.col = tCol;
             this.isDirty = true;
         } else if (currentItem == EMPTY) {
-            // Move to empty space
             this.playerPos.row = tRow;
             this.playerPos.col = tCol;
             this.isDirty = true;
         }
 
-        // Update NPCs
         this.updateNPCs();
 
-        // Update Bosses
         this.updateBosses();
 
-        // Update Projectiles
         this.updateProjectiles();
     }
 
@@ -296,7 +278,6 @@ class Labyrinth {
 
     handleTeleport(tRow, tCol) {
         let teleportPositions = [];
-        // Collect positions of all teleport symbols
         for (let row = 0; row < this.level.length; row++) {
             for (let col = 0; col < this.level[row].length; col++) {
                 if (this.level[row][col] == TELEPORT) {
@@ -304,11 +285,9 @@ class Labyrinth {
                 }
             }
         }
-        // Filter out the current teleport position
         teleportPositions = teleportPositions.filter(pos => !(pos.row == tRow && pos.col == tCol));
         if (teleportPositions.length > 0) {
             let otherTeleport = teleportPositions[0];
-            // Update the HERO position
             this.playerPos.row = otherTeleport.row;
             this.playerPos.col = otherTeleport.col;
             this.isDirty = true;
@@ -320,24 +299,20 @@ class Labyrinth {
 
     updateNPCs() {
         for (let npc of this.NPCs) {
-            if (Math.random() < 0.5) { // NPC moves only 50% of the time
+            if (Math.random() < 0.5) {
                 let moveHorizontally = Math.random() < 0.5;
 
                 let nextRow = npc.row;
                 let nextCol = npc.col;
 
                 if (moveHorizontally) {
-                    // Horizontal movement
                     nextCol += npc.hDirection;
                 } else {
-                    // Vertical movement
                     nextRow += npc.vDirection;
                 }
 
-                // Check for collision with walls or boundaries
                 let nextCell = this.level[nextRow]?.[nextCol];
                 if (nextCell === '█' || nextCell === undefined) {
-                    // Can't move into a wall or out of bounds, change direction
                     if (moveHorizontally) {
                         npc.hDirection *= -1;
                     } else {
@@ -346,13 +321,10 @@ class Labyrinth {
                     continue;
                 }
 
-                // Check for collision with the player
                 if (nextRow === this.playerPos.row && nextCol === this.playerPos.col) {
-                    // Collision handled in update() method
                     continue;
                 }
 
-                // Update NPC position
                 npc.row = nextRow;
                 npc.col = nextCol;
                 this.isDirty = true;
@@ -362,8 +334,7 @@ class Labyrinth {
 
     updateBosses() {
         for (let boss of this.bosses) {
-            // Boss shoots a projectile occasionally
-            if (Math.random() < 0.1) { // 10% chance each update
+            if (Math.random() < 0.1) {
                 let projCol = boss.col + boss.direction;
                 if (this.level[boss.row][projCol] == EMPTY || (boss.row == this.playerPos.row && projCol == this.playerPos.col)) {
                     this.projectiles.push({
@@ -385,7 +356,6 @@ class Labyrinth {
             let nextCell = this.level[proj.row]?.[nextCol];
 
             if (nextCell == '█' || nextCell === undefined) {
-                // Projectile hits a wall or goes out of bounds
                 this.isDirty = true;
                 continue;
             }
@@ -404,7 +374,6 @@ class Labyrinth {
                 continue;
             }
 
-            // Move the projectile
             proj.col = nextCol;
             newProjectiles.push(proj);
             this.isDirty = true;
@@ -428,29 +397,25 @@ class Labyrinth {
             let rowRendering = "";
             for (let col = 0; col < this.level[row].length; col++) {
                 if (row == this.playerPos.row && col == this.playerPos.col) {
-                    // Draw the player
                     let symbol = HERO;
                     let color = pallet[HERO];
                     if (playerStats.damageFlag) {
                         color += ANSI.BACKGROUND_COLOR.RED;
-                        playerStats.damageFlag = false; // Reset after drawing
+                        playerStats.damageFlag = false;
                     }
                     rowRendering += color + symbol + ANSI.COLOR_RESET;
                 } else if (this.isPositionOccupiedByNPC(row, col)) {
-                    // Draw NPC
                     let npc = this.getNPCAtPosition(row, col);
                     let symbol = NPC;
                     let color = pallet[NPC];
                     if (npc.damageFlag) {
                         color += ANSI.BACKGROUND_COLOR.RED;
-                        npc.damageFlag = false; // Reset after drawing
+                        npc.damageFlag = false;
                     }
                     rowRendering += color + symbol + ANSI.COLOR_RESET;
                 } else if (this.isPositionOccupiedByProjectile(row, col)) {
-                    // Draw Projectile
                     rowRendering += pallet[PROJECTILE] + PROJECTILE + ANSI.COLOR_RESET;
                 } else if (this.isPositionOccupiedByBoss(row, col)) {
-                    // Draw Boss
                     rowRendering += pallet[BOSS] + BOSS + ANSI.COLOR_RESET;
                 } else {
                     let symbol = this.level[row][col];
@@ -468,7 +433,6 @@ class Labyrinth {
         console.log(rendering);
         if (eventQueue.length > 0) {
             console.log(eventQueue.join('\n'));
-            // Keep last 3 messages
             if (eventQueue.length > 3) {
                 eventQueue.shift();
             }
@@ -509,7 +473,7 @@ const doorMappings = {
         "▲": "thirdLevel"
     },
     "thirdLevel": {
-        "▼": null // No next level; game will end
+        "▼": null
     }
 };
 
